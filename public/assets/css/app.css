@@ -561,22 +561,19 @@ code, .mono { font-family: var(--font-mono); }
 .tile-glyph { position: absolute; inset: 0; display: grid; place-items: center; background: var(--mapdots); }
 .tile-glyph svg { width: 76px; height: 76px; stroke-width: 1.3; color: #fff; opacity: 0.5; }
 .tile-glyph.hero svg { width: 120px; height: 120px; opacity: 0.38; }
-.tile-event-crew { background: linear-gradient(135deg, #b91c1c 0%, #c2762b 100%); }
-.tile-hospitality { background: linear-gradient(135deg, #0F1E3D 0%, #0A162D 100%); }
-.tile-logistics { background: linear-gradient(135deg, #1d4ed8 0%, #132B54 100%); }
-.tile-retail { background: linear-gradient(135deg, #2563eb 0%, #6d5fa3 100%); }
-.tile-construction { background: linear-gradient(135deg, #c2762b 0%, #b45309 100%); }
-.tile-housekeeping { background: linear-gradient(135deg, #15803d 0%, #0F1E3D 100%); }
-.tile-promotions { background: linear-gradient(135deg, #6d5fa3 0%, #c2762b 100%); }
-.tile-warehouse { background: linear-gradient(135deg, #b45309 0%, #92400e 100%); }
-.tile-manufacturing { background: linear-gradient(135deg, #0F1E3D 0%, #1d4ed8 100%); }
-.tile-healthcare { background: linear-gradient(135deg, #b91c1c 0%, #6d5fa3 100%); }
-.tile-security { background: linear-gradient(135deg, #334155 0%, #0A162D 100%); }
-.tile-transport { background: linear-gradient(135deg, #1d4ed8 0%, #132B54 100%); }
-.mark.tile-event-crew, .mark.tile-hospitality, .mark.tile-logistics, .mark.tile-retail,
-.mark.tile-construction, .mark.tile-housekeeping, .mark.tile-promotions,
-.mark.tile-warehouse, .mark.tile-manufacturing, .mark.tile-healthcare,
-.mark.tile-security, .mark.tile-transport { color: #fff; }
+.tile-event-crew { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-hospitality { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-logistics { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-retail { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-construction { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-housekeeping { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-promotions { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-warehouse { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-manufacturing { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-healthcare { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-security { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.tile-transport { background: linear-gradient(160deg, var(--accent-soft) 0%, var(--tint) 100%); }
+.mark.tile-event-crew, .mark.tile-hospitality, .mark.tile-logistics, .mark.tile-retail, .mark.tile-construction, .mark.tile-housekeeping, .mark.tile-promotions, .mark.tile-warehouse, .mark.tile-manufacturing, .mark.tile-healthcare, .mark.tile-security, .mark.tile-transport { color: var(--accent-ink); }
 
 /* banner version of the media block (job detail) */
 .detail-media { height: clamp(190px, 24vw, 330px); border-radius: var(--radius-xl); margin: 14px 0 18px; }
