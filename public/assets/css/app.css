@@ -1478,3 +1478,127 @@ code, .mono { font-family: var(--font-mono); }
 .lp .lp-steps li:hover { transform: translateY(-3px); box-shadow: 3px 10px 20px rgba(15,30,61,0.12); }
 .lp .lp-banner img { transition: transform 600ms cubic-bezier(.2,.8,.2,1); }
 .lp .lp-banner:hover img { transform: scale(1.04); }
+
+/* =====================================================================
+   SWON — single-screen Android download page (.dl)
+   Palette is the launch-page palette from the brief: navy dominant,
+   mint as accent only. Scoped so no app screen is affected.
+   ===================================================================== */
+.dl{
+  --dl-navy:#10243D; --dl-dark:#09182B; --dl-2:#183653;
+  --dl-mint:#75E6C1; --dl-accent:#36D6A5; --soft:#F5FAF8;
+  position:relative; min-height:100vh; display:flex; flex-direction:column;
+  background:
+    radial-gradient(70% 55% at 82% 8%, rgba(117,230,193,.10) 0%, rgba(117,230,193,0) 60%),
+    radial-gradient(60% 50% at 8% 92%, rgba(24,54,83,.85) 0%, rgba(24,54,83,0) 65%),
+    linear-gradient(165deg,#10243D 0%, #0C1D33 55%, #09182B 100%);
+  color:#fff; overflow:hidden;
+}
+.dl a{text-decoration:none}
+.dl-main{flex:1; width:100%; max-width:1220px; margin:0 auto; padding:0 32px;
+  display:grid; grid-template-columns:1.02fr .98fr; gap:40px; align-items:center}
+
+/* header */
+.dl-top{width:100%; max-width:1220px; margin:0 auto; padding:26px 32px;
+  display:flex; align-items:center; justify-content:space-between; gap:20px}
+.dl-brand img{height:34px; width:auto; display:block; filter:brightness(0) invert(1)}
+.dl-android{display:inline-flex; align-items:center; gap:8px; border:1px solid rgba(117,230,193,.42);
+  color:var(--dl-mint); border-radius:999px; padding:8px 15px; font-size:.76rem; font-weight:700; letter-spacing:.08em; text-transform:uppercase}
+.dl-android-dot{width:7px; height:7px; border-radius:50%; background:var(--dl-accent); box-shadow:0 0 0 3px rgba(54,214,165,.22)}
+
+/* copy */
+.dl-pill{display:inline-block; border:1px solid rgba(117,230,193,.38); color:var(--dl-mint);
+  border-radius:999px; padding:8px 16px; font-size:.72rem; font-weight:800; letter-spacing:.14em; text-transform:uppercase}
+.dl-copy h1{font-family:var(--font-display); font-weight:700; color:#fff;
+  font-size:clamp(2.7rem,4.9vw,4.5rem); line-height:.98; letter-spacing:-.025em; margin:24px 0 20px}
+.dl-copy h1 em{font-style:normal; color:var(--dl-mint)}
+.dl-lede{color:rgba(255,255,255,.74); font-size:1.05rem; line-height:1.65; max-width:46ch; margin:0 0 26px}
+.dl-benefits{list-style:none; margin:0 0 32px; padding:0; display:flex; flex-wrap:wrap; gap:12px 22px}
+.dl-benefits li{display:flex; align-items:center; gap:9px; font-size:.86rem; font-weight:600; color:rgba(255,255,255,.9)}
+.dl-benefits svg{width:19px; height:19px; fill:none; stroke:var(--dl-mint); stroke-width:1.7; stroke-linecap:round; stroke-linejoin:round}
+
+/* the download button is the loudest element on the page */
+.dl-btn{display:inline-flex; align-items:center; gap:12px; background:var(--dl-mint); color:var(--dl-dark);
+  font-family:var(--font-body); font-weight:800; font-size:1.12rem; letter-spacing:.01em;
+  padding:19px 34px; border-radius:999px;
+  box-shadow:0 16px 40px -16px rgba(54,214,165,.65), 0 0 0 1px rgba(117,230,193,.35), inset 0 1px 0 rgba(255,255,255,.45);
+  transition:transform .16s ease, box-shadow .16s ease, background .16s ease}
+.dl-btn svg{width:22px; height:22px; fill:none; stroke:currentColor; stroke-width:2; stroke-linecap:round; stroke-linejoin:round}
+.dl-btn:hover{transform:translateY(-2px); background:#86EFCF; box-shadow:0 22px 48px -18px rgba(54,214,165,.8), 0 0 0 1px rgba(117,230,193,.5)}
+.dl-btn:focus-visible{outline:2px solid #fff; outline-offset:3px}
+.dl-meta{margin:14px 0 0; color:rgba(255,255,255,.6); font-size:.82rem; font-weight:600; font-variant-numeric:tabular-nums}
+.dl-meta span{margin:0 8px; opacity:.5}
+
+/* category strip — deliberately quiet */
+.dl-cats{display:flex; flex-wrap:wrap; gap:9px; margin-top:34px}
+.dl-cat{border:1px solid rgba(117,230,193,.3); color:rgba(255,255,255,.86); border-radius:999px;
+  padding:7px 14px; font-size:.78rem; font-weight:600}
+
+/* showcase */
+.dl-showcase{position:relative; min-height:560px}
+.dl-ribbon{position:absolute; pointer-events:none}
+.dl-ribbon-a{width:560px; height:560px; right:-10%; top:-8%; border-radius:50%;
+  background:conic-gradient(from 205deg, rgba(117,230,193,.30) 0deg, rgba(117,230,193,0) 130deg, rgba(54,214,165,.20) 250deg, rgba(117,230,193,0) 360deg);
+  -webkit-mask-image:radial-gradient(circle, transparent 56%, #000 62%, #000 78%, transparent 88%);
+  mask-image:radial-gradient(circle, transparent 56%, #000 62%, #000 78%, transparent 88%)}
+.dl-ribbon-b{width:340px; height:340px; left:-10%; bottom:-8%; border-radius:50%;
+  background:conic-gradient(from 20deg, rgba(54,214,165,.20) 0deg, rgba(117,230,193,0) 160deg, rgba(117,230,193,.14) 300deg, rgba(117,230,193,0) 360deg);
+  -webkit-mask-image:radial-gradient(circle, transparent 58%, #000 64%, #000 80%, transparent 90%);
+  mask-image:radial-gradient(circle, transparent 58%, #000 64%, #000 80%, transparent 90%)}
+.dl-photo{position:absolute; right:0; bottom:0; width:82%; height:46%; object-fit:cover;
+  border-radius:22px; opacity:.38; filter:grayscale(1) contrast(1.15) brightness(.85);
+  mix-blend-mode:luminosity; mask-image:linear-gradient(to top,#000 22%,transparent 90%)}
+.dl-phone{position:absolute; width:250px; background:linear-gradient(180deg,#14283F,#0B1B2E);
+  border:2px solid rgba(117,230,193,.22); border-radius:38px; padding:14px 14px 16px;
+  box-shadow:0 40px 70px -30px rgba(0,0,0,.75), inset 0 0 0 6px #09182B;
+  display:flex; flex-direction:column; gap:2px}
+.dl-phone-back{right:2%; top:6%; transform:rotate(6deg) scale(.92); opacity:.95}
+.dl-phone-front{left:2%; top:16%; transform:rotate(-5deg); z-index:3}
+.dl-notch{display:block; width:64px; height:5px; border-radius:3px; background:rgba(255,255,255,.2); margin:2px auto 14px}
+.dl-k{font-size:.62rem; font-weight:800; letter-spacing:.11em; text-transform:uppercase; color:var(--dl-mint)}
+.dl-phone strong{font-family:var(--font-display); font-size:1rem; color:#fff; display:block; margin:3px 0 10px}
+.dl-row{display:flex; align-items:center; gap:8px; padding:9px 0; border-top:1px solid rgba(255,255,255,.09)}
+.dl-row:first-of-type{border-top:0}
+.dl-t{font-size:.8rem; font-weight:700; color:#fff; line-height:1.3}
+.dl-m{font-size:.68rem; color:rgba(255,255,255,.55); margin-top:2px}
+.dl-p{margin-left:auto; font-family:var(--font-display); font-weight:700; font-size:.84rem; color:var(--dl-mint); font-variant-numeric:tabular-nums}
+.dl-bar{height:6px; border-radius:4px; background:rgba(255,255,255,.12); overflow:hidden; margin:6px 0 4px}
+.dl-bar span{display:block; height:100%; background:var(--dl-accent); border-radius:4px}
+.dl-mini{margin-top:auto; display:block; text-align:center; background:rgba(117,230,193,.10); color:var(--dl-mint);
+  border:1px solid rgba(117,230,193,.45); border-radius:999px; padding:9px 12px; font-size:.76rem; font-weight:800}
+
+/* footer */
+.dl-foot{width:100%; max-width:1220px; margin:0 auto; padding:20px 32px 26px;
+  display:flex; flex-wrap:wrap; gap:10px 24px; justify-content:space-between;
+  color:rgba(255,255,255,.45); font-size:.76rem; border-top:1px solid rgba(255,255,255,.08)}
+
+/* responsive */
+@media (max-width:1080px){
+  .dl-main{grid-template-columns:1fr; gap:28px; padding-top:8px; padding-bottom:28px; text-align:center}
+  .dl-copy{order:1}
+  .dl-lede{margin-left:auto; margin-right:auto}
+  .dl-benefits, .dl-cats{justify-content:center}
+  .dl-showcase{order:2; min-height:460px; max-width:520px; margin:0 auto; width:100%}
+  .dl-phone{width:212px}
+  .dl-phone-front{left:2%}
+  .dl-phone-back{right:2%}
+}
+@media (max-width:560px){
+  .dl-top{padding:18px 20px}
+  .dl-brand img{height:28px}
+  .dl-android{font-size:.68rem; padding:6px 11px}
+  .dl-main{padding:0 20px 24px}
+  .dl-copy h1{font-size:clamp(2.1rem,10vw,2.9rem)}
+  .dl-lede{font-size:.98rem}
+  .dl-btn{width:100%; justify-content:center; font-size:1.04rem; padding:17px 24px}
+  .dl-meta{font-size:.76rem}
+  .dl-showcase{min-height:420px}
+  .dl-phone{width:180px; border-radius:30px}
+  .dl-phone-front{left:0; top:8%}
+  .dl-phone-back{right:0; top:2%}
+  .dl-foot{padding:16px 20px 22px; justify-content:center; text-align:center}
+}
+@media (prefers-reduced-motion:reduce){
+  .dl-btn{transition:none}
+  .dl-btn:hover{transform:none}
+}
