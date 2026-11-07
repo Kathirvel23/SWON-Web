@@ -36,7 +36,7 @@
 <body class="splash-body">
     <div class="splash-bg" aria-hidden="true"></div>
     <?= $content ?>
-    <?php \App\View::partial('partials/pwa'); ?>
+    <?php /* install prompt intentionally not shown on the marketing page */ ?>
     <script src="<?= asset('js/app.js') ?>"></script>
     <script src="<?= asset('js/pwa.js') ?>"></script>
 </body>
