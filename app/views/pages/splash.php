@@ -11,7 +11,7 @@ $total = (int) ($openTotal ?? 0);
   <header class="lp-nav">
     <div class="lp-wrap lp-nav-in">
       <a class="lp-logo" href="<?= url('/') ?>" aria-label="SWON home">
-        <img src="<?= asset('img/brand/swon-wordmark.png') ?>" alt="SWON" width="140" height="40">
+        <img src="<?= asset('img/brand/swon-logo.png') ?>" alt="SWON" width="140" height="40">
       </a>
       <nav class="lp-links" aria-label="Main">
         <a class="is-active" href="<?= url('/') ?>">Home</a>
