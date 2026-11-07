@@ -1,0 +1,36 @@
+# Apache (XAMPP) — route everything that is not a real file to the front controller.
+Options -Indexes
+DirectoryIndex index.html index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Opening page at the site root.
+    RewriteRule ^$ index.html [L]
+
+    RewriteCond %{REQUEST_FILENAME} !-f
+    RewriteCond %{REQUEST_FILENAME} !-d
+    RewriteRule ^ index.php [QSA,L]
+</IfModule>
+
+# Never serve dotfiles or local config through the web root.
+<FilesMatch "^\.">
+    Require all denied
+</FilesMatch>
+
+# PWA: correct manifest type and revalidation for the worker/manifest.
+<IfModule mod_mime.c>
+    AddType application/manifest+json .webmanifest
+</IfModule>
+
+<IfModule mod_headers.c>
+    <Files "sw.js">
+        Header set Cache-Control "no-cache, no-store, must-revalidate"
+    </Files>
+    <Files "manifest.webmanifest">
+        Header set Cache-Control "no-cache"
+    </Files>
+    <Files "offline.html">
+        Header set Cache-Control "no-cache"
+    </Files>
+</IfModule>

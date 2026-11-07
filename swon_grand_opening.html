@@ -1,0 +1,592 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<script>
+(function () {
+  var standalone = (window.matchMedia && window.matchMedia('(display-mode: standalone)').matches) || window.navigator.standalone === true;
+  if (standalone) { location.replace('./home'); }
+})();
+</script>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#F6F3EC">
+<title>SWON — Grand Opening</title>
+<!--
+  SWON · Grand Opening gate (standalone)
+  ------------------------------------------------------------------
+  Counts down to the launch time; at zero it plays a restrained
+  celebration and hands over to the site.
+
+  Launch time (first match wins)
+    1. ?at=2026-10-25T11:00     (URL, handy for demos)
+    2. data-launch="2026-10-25T11:00" on <main>
+    3. default: the next 11:00 your device clock reaches
+       (today if it is still ahead, otherwise tomorrow)
+
+  Integration API
+    window.SWONGate.open()          play the celebration + open state now
+    window.SWONGate.reset()         clear "already celebrated" memory
+    window.SWONGate.setLaunch(iso)  re-arm the gate to a new time
+    window.SWONGate.debug()
+    window event "swon:gate-open"
+    ?preview=1  celebrate immediately      ?instant=1  skip the gate
+    ?dev=1      show the dev bar           ?auto=0     never auto-continue
+  Handover: set data-next="./home" and the gate moves on
+  by itself once the celebration has played.
+-->
+<style>
+:root{
+  --cream:#F6F3EC; --cream-hi:#FFFDF8; --cream-lo:#EDF4EB;
+  --green-deep:#0B4540; --green-dark:#115E59; --teal:#0F766E; --leaf:#8EDC5A;
+  --ink:#10201E; --muted:#4F5F5C; --border:#E4DDD0;
+  --ease:cubic-bezier(.19,.86,.24,1);
+}
+*,*::before,*::after{box-sizing:border-box}
+html,body{margin:0;height:100%}
+html.gate-lock,html.gate-lock body{overflow:hidden}
+body{background:var(--cream);color:var(--ink);-webkit-font-smoothing:antialiased;
+  font-family:Manrope,Inter,system-ui,-apple-system,"Segoe UI",Roboto,sans-serif}
+button{font:inherit;color:inherit}
+.sr{position:absolute;width:1px;height:1px;margin:-1px;padding:0;overflow:hidden;clip:rect(0 0 0 0);white-space:nowrap;border:0}
+
+/* ---------- canvas ---------- */
+.gate{position:fixed;inset:0;display:grid;place-items:center;overflow:hidden;isolation:isolate;
+  padding:max(22px,env(safe-area-inset-top)) max(20px,env(safe-area-inset-right)) max(22px,env(safe-area-inset-bottom)) max(20px,env(safe-area-inset-left));
+  background:radial-gradient(ellipse at 50% 42%,var(--cream-hi) 0%,var(--cream) 58%,var(--cream-lo) 100%)}
+.gate::after{content:"";position:absolute;inset:0;pointer-events:none;
+  background:radial-gradient(ellipse at 50% 50%,transparent 50%,rgba(11,69,64,.06) 100%)}
+.gate::before{content:"";position:absolute;inset:0;z-index:3;pointer-events:none;opacity:.18;
+  background-image:url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='160' height='160'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='.9' numOctaves='3' stitchTiles='stitch'/%3E%3CfeColorMatrix type='saturate' values='0'/%3E%3C/filter%3E%3Crect width='160' height='160' filter='url(%23n)' opacity='.4'/%3E%3C/svg%3E");
+  background-size:160px 160px}
+.glow{position:absolute;left:50%;top:46%;width:min(120vw,1100px);aspect-ratio:1;opacity:0;
+  transform:translate(-50%,-50%) scale(.94);pointer-events:none;
+  background:radial-gradient(circle,rgba(15,118,110,.10) 0%,rgba(142,220,90,.055) 32%,rgba(15,118,110,0) 62%)}
+.play .glow{animation:ambient 9.5s .3s ease-in-out both}
+.is-open .glow{animation:ambient 9.5s .3s ease-in-out both}
+
+/* ---------- geometry that frames the clock ---------- */
+.frame{position:absolute;left:50%;top:50%;transform:translate(-50%,-50%);width:min(92vw,760px);aspect-ratio:1.9/1;
+  pointer-events:none;opacity:0;animation:frameIn 1.4s .2s ease both}
+.frame svg{width:100%;height:100%;overflow:visible}
+.frame path,.frame circle{fill:none;vector-effect:non-scaling-stroke}
+.f-hair{stroke:rgba(15,118,110,.22);stroke-width:1;stroke-dasharray:2 9}
+.f-rule{stroke:rgba(15,118,110,.30);stroke-width:1}
+.f-ring{stroke:rgba(15,118,110,.16);stroke-width:1}
+.f-tick{stroke:rgba(11,69,64,.34);stroke-width:1;stroke-linecap:round}
+.is-open .frame{animation:frameOut .55s ease both}
+
+/* ---------- panel ---------- */
+.panel{position:relative;z-index:2;width:min(100%,900px);text-align:center}
+.state{transition:opacity .55s ease,transform .55s var(--ease)}
+.state-open{position:absolute;left:0;right:0;top:50%;transform:translateY(-44%);opacity:0;pointer-events:none}
+.is-open .state-count{opacity:0;transform:translateY(-10px);pointer-events:none}
+.is-open .state-open{opacity:1;transform:translateY(-50%);pointer-events:auto}
+
+.brand{display:block;margin:0 auto clamp(16px,2.6vh,28px);width:clamp(150px,26vw,250px)}
+.wordmark{display:block;width:100%;height:auto}
+.wordmark-fallback{display:block;font-size:clamp(34px,10vw,78px);font-weight:800;letter-spacing:-.02em;color:var(--green-deep)}
+.wordmark-fallback[hidden]{display:none}
+
+.eyebrow{margin:0 0 clamp(10px,1.6vh,16px);font-size:11px;font-weight:800;letter-spacing:.24em;text-transform:uppercase;color:var(--teal)}
+.headline{margin:0;font-size:clamp(19px,3.1vw,32px);font-weight:700;letter-spacing:-.015em;color:var(--green-deep)}
+.rule{height:1px;margin:clamp(16px,2.6vh,26px) auto;width:min(100%,560px);
+  background:linear-gradient(90deg,rgba(228,221,208,0),rgba(228,221,208,1) 22%,rgba(228,221,208,1) 78%,rgba(228,221,208,0))}
+
+.clock{display:grid;grid-template-columns:repeat(4,1fr);gap:0;margin:0 auto;width:min(100%,760px)}
+.unit{position:relative;padding:clamp(8px,1.4vh,14px) clamp(4px,1vw,16px)}
+.unit+.unit{border-left:1px solid var(--border)}
+.num{display:block;font-size:clamp(36px,7vw,80px);line-height:1;font-weight:800;letter-spacing:-.035em;
+  color:var(--green-deep);font-variant-numeric:tabular-nums}
+.lab{display:block;margin-top:clamp(8px,1.2vh,12px);font-size:clamp(10px,1.15vw,12px);font-weight:800;
+  letter-spacing:.2em;text-transform:uppercase;color:var(--muted)}
+.num.live{animation:tick 1s linear infinite}
+.progress{position:relative;height:2px;margin:clamp(16px,2.4vh,24px) auto 0;width:min(100%,560px);
+  background:rgba(228,221,208,.9);border-radius:2px;overflow:hidden}
+.progress i{position:absolute;left:0;top:0;bottom:0;width:var(--p,0%);
+  background:linear-gradient(90deg,rgba(15,118,110,.85),rgba(142,220,90,.85));transition:width 1s linear}
+
+.when{margin:clamp(14px,2.2vh,22px) 0 0;font-size:clamp(13px,1.5vw,16px);font-weight:600;color:var(--green-dark)}
+.note{margin:8px 0 0;font-size:clamp(11px,1.2vw,13px);color:var(--muted)}
+
+/* ---------- opened state ---------- */
+.open-halo{position:absolute;left:50%;top:50%;width:min(120vw,900px);aspect-ratio:2.2/1;opacity:0;transform:translate(-50%,-50%) scale(.7);
+  pointer-events:none;filter:blur(4px);
+  background:radial-gradient(ellipse at 50% 50%,rgba(15,118,110,.15) 0%,rgba(142,220,90,.09) 40%,rgba(15,118,110,0) 72%)}
+.is-open .open-halo{animation:haloIn 1.15s .1s var(--ease) both}
+.open-mark{position:relative;width:clamp(200px,34vw,380px);margin:0 auto clamp(14px,2.2vh,22px)}
+.open-mark .wordmark{opacity:0;transform:translateY(10px) scale(.975);filter:blur(5px)}
+.is-open .open-mark .wordmark{animation:logoIn 1s .28s var(--ease) both}
+.is-open .open-mark .wordmark-fallback{animation:logoIn 1s .28s var(--ease) both}
+.open-head{margin:0;font-size:clamp(22px,3.6vw,38px);font-weight:800;letter-spacing:-.02em;color:var(--green-deep);
+  opacity:0;transform:translateY(8px)}
+.is-open .open-head{animation:riseIn .8s .5s var(--ease) both}
+.open-sub{margin:10px 0 0;font-size:clamp(12px,1.4vw,15px);letter-spacing:.16em;text-transform:uppercase;font-weight:700;
+  color:var(--muted);opacity:0;transform:translateY(8px)}
+.is-open .open-sub{animation:riseIn .8s .62s var(--ease) both}
+.enter{margin-top:clamp(18px,3vh,30px);opacity:0;transform:translateY(10px)}
+.is-open .enter{animation:riseIn .8s .8s var(--ease) both}
+.btn{display:inline-flex;align-items:center;gap:9px;border:1px solid var(--green-deep);border-radius:999px;cursor:pointer;
+  background:var(--green-deep);color:#fff;padding:13px 24px;font-size:14px;font-weight:700;white-space:nowrap;
+  box-shadow:0 10px 30px rgba(11,69,64,.18);transition:transform .2s var(--ease),background .2s ease}
+.btn:hover{background:#0d534c}.btn:active{transform:translateY(1px)}
+.btn:focus-visible{outline:3px solid rgba(15,118,110,.5);outline-offset:3px}
+.btn svg{width:15px;height:15px}
+
+/* ---------- celebration ---------- */
+.burst{position:absolute;left:50%;top:50%;width:0;height:0;pointer-events:none;z-index:4}
+.burst i{position:absolute;left:0;top:0;width:var(--sz,6px);height:var(--sz,6px);border-radius:50%;
+  filter:blur(.4px);
+  background:radial-gradient(circle,rgba(15,118,110,.5) 0%,rgba(142,220,90,.5) 45%,rgba(142,220,90,.16) 70%,rgba(15,118,110,0) 100%);
+  box-shadow:0 0 10px 3px rgba(15,118,110,.22);
+  opacity:0;transform-origin:0 0}
+.is-open .burst i{animation:burst var(--dur,1.5s) var(--d,0s) cubic-bezier(.16,.72,.3,1) both}
+.shock{position:absolute;left:50%;top:50%;width:min(70vw,520px);aspect-ratio:1;border-radius:50%;
+  transform:translate(-50%,-50%) scale(.35);opacity:0;pointer-events:none;z-index:3;
+  border:1px solid rgba(15,118,110,.5)}
+.is-open .shock{animation:shock 1.5s .05s var(--ease) both}
+.shock.b{animation-delay:.3s;border-color:rgba(142,220,90,.45)}
+.sweepwrap{position:absolute;inset:0;overflow:hidden;pointer-events:none;z-index:3}
+.sweepline{position:absolute;top:0;bottom:0;left:0;width:26%;opacity:0;filter:blur(20px);
+  transform:translateX(-140%) rotate(8deg);
+  -webkit-mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.6) 28%,#000 46%,#000 54%,rgba(0,0,0,.6) 72%,transparent 100%);
+  mask-image:linear-gradient(180deg,transparent 0%,rgba(0,0,0,.6) 28%,#000 46%,#000 54%,rgba(0,0,0,.6) 72%,transparent 100%);
+  background:linear-gradient(100deg,rgba(15,118,110,0) 0%,rgba(142,220,90,.12) 44%,rgba(255,255,255,.4) 50%,rgba(142,220,90,.12) 56%,rgba(15,118,110,0) 100%)}
+.is-open .sweepline{animation:sweepGo 1.5s .15s cubic-bezier(.4,.05,.3,1) both}
+
+/* ---------- controls ---------- */
+.controls{position:absolute;left:50%;transform:translateX(-50%);bottom:calc(16px + env(safe-area-inset-bottom));z-index:6;
+  display:flex;align-items:center;gap:8px;opacity:.42;transition:opacity .45s ease}
+.gate:hover .controls,.controls:focus-within{opacity:.95}
+.ctl{display:inline-flex;align-items:center;gap:7px;border:1px solid rgba(11,69,64,.16);border-radius:999px;cursor:pointer;
+  white-space:nowrap;background:rgba(255,253,248,.92);color:var(--green-deep);padding:9px 14px;font-size:12px;font-weight:700;
+  box-shadow:0 5px 20px rgba(11,69,64,.07);backdrop-filter:blur(10px);transition:border-color .2s ease,background .2s ease,transform .2s ease}
+.ctl:hover{border-color:rgba(11,69,64,.34);background:rgba(255,255,255,.98)}
+.ctl:active{transform:translateY(1px)}
+.ctl:focus-visible{outline:3px solid rgba(15,118,110,.5);outline-offset:3px}
+.ctl svg{width:13px;height:13px;flex:none}
+.is-open .controls{opacity:.9}
+.devbar{position:absolute;right:calc(16px + env(safe-area-inset-right));bottom:calc(16px + env(safe-area-inset-bottom));z-index:7;
+  display:flex;gap:8px;opacity:.7}
+.devbar[hidden]{display:none}
+.gone{opacity:0;pointer-events:none;transition:opacity .45s ease}
+
+/* ---------- keyframes ---------- */
+@keyframes ambient{0%{opacity:0;transform:translate(-50%,-50%) scale(.93)}
+  16%{opacity:.6;transform:translate(-50%,-50%) scale(1)}38%{opacity:.42;transform:translate(-50%,-50%) scale(.985)}
+  60%{opacity:.58;transform:translate(-50%,-50%) scale(1.015)}82%{opacity:.44;transform:translate(-50%,-50%) scale(.995)}
+  100%{opacity:.56;transform:translate(-50%,-50%) scale(1.01)}}
+@keyframes frameIn{from{opacity:0}to{opacity:.85}}
+@keyframes frameOut{from{opacity:1}to{opacity:0}}
+@keyframes tick{0%{transform:scale(1.035);opacity:.86}34%{transform:scale(1);opacity:1}100%{transform:scale(1);opacity:1}}
+@keyframes haloIn{0%{opacity:0;transform:translate(-50%,-50%) scale(.7)}
+  58%{opacity:.66;transform:translate(-50%,-50%) scale(1)}100%{opacity:.4;transform:translate(-50%,-50%) scale(1.05)}}
+@keyframes logoIn{0%{opacity:0;transform:translateY(10px) scale(.975);filter:blur(5px)}
+  62%{opacity:1;filter:blur(0)}100%{opacity:1;transform:translateY(0) scale(1);filter:blur(0)}}
+@keyframes riseIn{from{opacity:0;transform:translateY(8px)}to{opacity:1;transform:none}}
+@keyframes shock{0%{opacity:0;transform:translate(-50%,-50%) scale(.35)}
+  18%{opacity:.8}100%{opacity:0;transform:translate(-50%,-50%) scale(1.5)}}
+@keyframes sweepGo{0%{opacity:0;transform:translateX(-145%) rotate(8deg)}
+  16%{opacity:1}78%{opacity:.85}100%{opacity:0;transform:translateX(330%) rotate(8deg)}}
+@keyframes burst{0%{opacity:0;transform:rotate(var(--a)) translateX(calc(var(--r) * .42)) scale(.4)}
+  14%{opacity:.85}62%{opacity:.5}
+  100%{opacity:0;transform:rotate(var(--a)) translateX(var(--r)) scale(1.05)}}
+@keyframes entering{to{opacity:0}}
+
+@media (max-width:560px){
+  .clock{grid-template-columns:repeat(2,1fr);gap:0;width:min(100%,420px)}
+  .unit:nth-child(odd){border-left:0}
+  .unit:nth-child(n+3){border-top:1px solid var(--border)}
+  .num{font-size:clamp(40px,15vw,64px)}
+  .frame{width:min(96vw,520px);aspect-ratio:1.15/1}
+  .ctl{padding:8px 12px;font-size:11px}
+}
+/* returning visitor: the doors are already open — arrive quietly, no burst */
+.quiet .burst i,.quiet .shock,.quiet .sweepline{animation:none;opacity:0}
+.quiet .frame{animation:none;opacity:0}
+.quiet .open-halo{animation:none;opacity:.4;transform:translate(-50%,-50%) scale(1)}
+.quiet .open-mark .wordmark,.quiet .open-mark .wordmark-fallback,
+.quiet .open-head,.quiet .open-sub,.quiet .enter{animation:none;opacity:1;transform:none;filter:none}
+
+@media (max-height:560px){ .when,.note{display:none} .rule{margin:10px auto} }
+@media (prefers-reduced-motion:reduce){
+  .play .glow,.is-open .glow{animation:none;opacity:.5}
+  .num.live{animation:none}
+  .is-open .burst i,.is-open .shock,.is-open .sweepline{animation:none;opacity:0}
+  .is-open .open-mark .wordmark,.is-open .open-head,.is-open .open-sub,.is-open .enter,
+  .is-open .open-mark .wordmark-fallback{opacity:1;transform:none;filter:none;animation:none}
+  .frame{animation:none;opacity:1}
+  .is-open .frame{opacity:0}
+}
+</style>
+</head>
+<body>
+
+<main class="gate play" id="gate" data-launch="2026-10-25T04:35" data-next="./home" aria-label="SWON grand opening">
+  <div class="glow" aria-hidden="true"></div>
+
+  <div class="frame" aria-hidden="true">
+    <svg viewBox="0 0 1000 526" preserveAspectRatio="xMidYMid meet">
+      <path class="f-rule" d="M 60 263 H 940"/>
+      <path class="f-rule" d="M 500 40 V 486" style="opacity:.55"/>
+      <path class="f-hair" d="M 130 263 H 370 M 630 263 H 870"/>
+      <circle class="f-ring" cx="500" cy="263" r="150"/>
+      <circle class="f-ring" cx="500" cy="263" r="230" style="stroke-dasharray:2 12;opacity:.8"/>
+      <path class="f-tick" d="M 493 106 h 14 M 493 420 h 14 M 343 256 v 14 M 643 256 v 14"/>
+      <path class="f-hair" d="M 250 263 Q 500 130 750 263 M 250 263 Q 500 396 750 263"/>
+    </svg>
+  </div>
+
+  <section class="panel">
+    <div class="state state-count" id="stateCount">
+      <span class="brand">
+        <img class="wordmark" id="wordmark" src="public/assets/img/brand/swon-wordmark.png"
+             width="559" height="161" alt="SWON" decoding="async">
+        <span class="wordmark-fallback" id="wordmarkFallback" hidden>SWON</span>
+      </span>
+      <p class="eyebrow">Grand opening</p>
+      <h1 class="headline">The doors open in</h1>
+      <div class="rule"></div>
+
+      <div class="clock" id="clock" aria-hidden="true">
+        <div class="unit"><span class="num" id="numDays">00</span><span class="lab">Days</span></div>
+        <div class="unit"><span class="num" id="numHours">00</span><span class="lab">Hours</span></div>
+        <div class="unit"><span class="num" id="numMins">00</span><span class="lab">Minutes</span></div>
+        <div class="unit"><span class="num live" id="numSecs">00</span><span class="lab">Seconds</span></div>
+      </div>
+      <p class="sr" id="liveStatus" aria-live="polite" aria-atomic="true"></p>
+
+      <div class="progress" aria-hidden="true"><i id="bar"></i></div>
+      <p class="when" id="whenLine">—</p>
+      <p class="note" id="noteLine">Sign-in and job posting unlock the moment the timer ends.</p>
+    </div>
+
+    <div class="state state-open" id="stateOpen">
+      <div class="open-halo" aria-hidden="true"></div>
+      <div class="burst" id="burst" aria-hidden="true"></div>
+      <div class="shock" aria-hidden="true"></div>
+      <div class="shock b" aria-hidden="true"></div>
+      <div class="open-mark">
+        <img class="wordmark" src="public/assets/img/brand/swon-wordmark.png" width="559" height="161" alt="SWON">
+      </div>
+      <h2 class="open-head">We are open</h2>
+      <p class="open-sub">SWON is live</p>
+      <div class="enter">
+        <button class="btn" id="enterBtn" type="button">
+          Enter SWON
+          <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M5 12h13"/><path d="M13 6l6 6-6 6"/></svg>
+        </button>
+      </div>
+    </div>
+  </section>
+
+  <div class="sweepwrap" aria-hidden="true"><div class="sweepline"></div></div>
+
+  <div class="controls" role="group" aria-label="Sound controls">
+    <button class="ctl" id="soundBtn" type="button" aria-pressed="true" data-state="ready" aria-label="Sound on — starts after your first interaction">
+      <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.1" stroke-linecap="round" stroke-linejoin="round" aria-hidden="true"><path d="M4 9.5h3.2L12 5.5v13L7.2 14.5H4z"/><path d="M16.5 9.2a4 4 0 0 1 0 5.6"/><path d="M19 6.6a7.6 7.6 0 0 1 0 10.8"/></svg>
+      <span id="soundLabel">Sound on</span>
+    </button>
+  </div>
+
+  <div class="devbar" id="devbar" hidden>
+    <button class="ctl" id="previewBtn" type="button">Preview celebration</button>
+    <button class="ctl" id="resetBtn" type="button">Reset gate</button>
+  </div>
+</main>
+
+<script>
+(function(){
+'use strict';
+
+/* ============================== configuration ============================== */
+var CFG = {
+  /* default launch: the next 11:00 on the visitor's own clock */
+  defaultHour: 11,
+  defaultMinute: 0,
+  celebrateEnd: 3.6,     /* seconds after opening before handing over */
+  tickFrom: 10           /* quiet ticks during the final N seconds        */
+};
+
+var gate   = document.getElementById('gate');
+if (!gate) return;
+var params = new URLSearchParams(location.search);
+
+/* ------------------------------- launch time ------------------------------ */
+function nextDefaultLaunch(){
+  var now = new Date();
+  var t = new Date(now.getFullYear(), now.getMonth(), now.getDate(), CFG.defaultHour, CFG.defaultMinute, 0, 0);
+  if (t.getTime() - now.getTime() < 30000) t.setDate(t.getDate() + 1);
+  return t;
+}
+function parseLaunch(raw){
+  if (!raw) return null;
+  var m = String(raw).trim().match(/^(\d{4})-(\d{2})-(\d{2})(?:[T ](\d{2}):(\d{2})(?::(\d{2}))?)?/);
+  if (!m) return null;
+  var d = new Date(+m[1], +m[2] - 1, +m[3], m[4] ? +m[4] : 0, m[5] ? +m[5] : 0, m[6] ? +m[6] : 0, 0);
+  return isNaN(d.getTime()) ? null : d;
+}
+var launch = parseLaunch(params.get('at')) || parseLaunch(gate.getAttribute('data-launch')) || nextDefaultLaunch();
+var launchIso = launch.toISOString();
+
+/* --------------------------------- memory -------------------------------- */
+var KEY_SEEN = 'swon.gate.seen@' + launchIso;
+function store(k, v){ try{ localStorage.setItem(k, v); }catch(e){} }
+function read(k){ try{ return localStorage.getItem(k); }catch(e){ return null; } }
+
+/* ------------------------------- handover -------------------------------- */
+function safeNext(raw){ return /^(https?:\/\/|\/|\.\/)/i.test(raw || '') ? raw : ''; }
+var nextUrl = safeNext(params.get('next') || gate.getAttribute('data-next') || '');
+var autoGo  = params.get('auto') !== '0' && !!nextUrl;
+
+/* --------------------------------- logo --------------------------------- */
+var wordmark = document.getElementById('wordmark'), fallback = document.getElementById('wordmarkFallback');
+var LOGO_SOURCES = [
+  'public/assets/img/brand/swon-wordmark.png',
+  'assets/img/brand/swon-wordmark.png',
+  '../public/assets/img/brand/swon-wordmark.png',
+  'swon-wordmark.png'
+], logoIdx = 0, logoOk = false;
+/* every wordmark on the page (count state + opened state) walks the same chain */
+function wireLogo(img, onFail){
+  var i = 0;
+  img.addEventListener('load', function(){ logoOk = true; });
+  img.addEventListener('error', function(){
+    i++; if (i > logoIdx) logoIdx = i;
+    if (i < LOGO_SOURCES.length) img.src = LOGO_SOURCES[i];
+    else { img.hidden = true; if (onFail) onFail(); }
+  });
+}
+wireLogo(wordmark, function(){ fallback.hidden = false; });
+wireLogo(document.querySelector('.open-mark .wordmark'), null);
+
+/* ================================ sound ================================== */
+var S = { ctx:null, master:null, bus:null, live:[], wanted:true, state:'ready', gestureBound:false, ticked:0 };
+function audioSupported(){ return !!(window.AudioContext || window.webkitAudioContext); }
+function buildAudio(){
+  if (S.ctx || !audioSupported()) return;
+  var Ctx = window.AudioContext || window.webkitAudioContext, ctx = S.ctx = new Ctx();
+  S.master = ctx.createGain(); S.master.gain.value = 0.85; S.master.connect(ctx.destination);
+  var conv = ctx.createConvolver(), sr = ctx.sampleRate, len = Math.floor(sr * 1.4), buf = ctx.createBuffer(2, len, sr);
+  for (var c=0;c<2;c++){ var d = buf.getChannelData(c);
+    for (var i=0;i<len;i++){ var t = i/len; d[i] = (Math.random()*2-1) * Math.pow(1-t, 2.7); } }
+  conv.buffer = buf;
+  var wet = ctx.createGain(); wet.gain.value = 0.24; conv.connect(wet); wet.connect(S.master); S.reverb = conv;
+}
+function bus(){
+  if (S.bus) return S.bus;
+  var b = S.ctx.createGain(); b.gain.value = 1; b.connect(S.master); if (S.reverb) b.connect(S.reverb); S.bus = b; return b;
+}
+function tone(spec){
+  if (!S.ctx || !S.wanted || S.ctx.state !== 'running') return;
+  var ctx = S.ctx, b = bus(), at = Math.max(spec.at || ctx.currentTime + 0.01, ctx.currentTime + 0.005);
+  var osc = ctx.createOscillator(), g = ctx.createGain();
+  osc.type = spec.type || 'sine';
+  osc.frequency.setValueAtTime(spec.freq, at);
+  if (spec.to) osc.frequency.exponentialRampToValueAtTime(spec.to, at + spec.dur);
+  var peak = Math.max(spec.gain, 0.0002), att = spec.attack == null ? 0.01 : spec.attack;
+  var rel = spec.release == null ? Math.min(0.3, spec.dur * 0.4) : spec.release;
+  g.gain.setValueAtTime(0.0001, at);
+  g.gain.exponentialRampToValueAtTime(peak, at + att);
+  g.gain.setValueAtTime(peak, at + Math.max(att, spec.dur - rel));
+  g.gain.exponentialRampToValueAtTime(0.0001, at + spec.dur);
+  var tail = osc;
+  if (spec.filterTo){
+    var f = ctx.createBiquadFilter(); f.type = 'lowpass'; f.Q.value = 0.6;
+    f.frequency.setValueAtTime(spec.filterFrom || 500, at);
+    f.frequency.exponentialRampToValueAtTime(spec.filterTo, at + spec.dur);
+    osc.connect(f); tail = f;
+  }
+  tail.connect(g); g.connect(b);
+  osc.start(at); osc.stop(at + spec.dur + 0.05);
+  var v = {osc:osc, g:g}; S.live.push(v);
+  osc.onended = function(){ for (var i=0;i<S.live.length;i++) if (S.live[i]===v){ S.live.splice(i,1); break; } try{ g.disconnect(); }catch(e){} };
+}
+function stopSound(){
+  if (!S.ctx) return;
+  var now = S.ctx.currentTime;
+  if (S.bus){ try{ S.bus.gain.cancelScheduledValues(now); S.bus.gain.setTargetAtTime(0, now, 0.02); }catch(e){}
+    (function(b){ setTimeout(function(){ try{ b.disconnect(); }catch(e){} }, 400); })(S.bus); S.bus = null; }
+  for (var i=0;i<S.live.length;i++){
+    try{ S.live[i].g.gain.cancelScheduledValues(now); S.live[i].g.gain.setTargetAtTime(0, now, 0.015); }catch(e){}
+    try{ S.live[i].osc.stop(now + 0.3); }catch(e){}
+  }
+  S.live.length = 0;
+}
+function unlockSound(){
+  if (!S.wanted || !audioSupported()) return;
+  if (!S.ctx) buildAudio();
+  if (!S.ctx) return;
+  if (S.ctx.state === 'running'){ S.state = 'on'; paintSound(); return; }
+  S.state = 'ready'; paintSound();
+  if (S.gestureBound) return;
+  S.gestureBound = true;
+  var fire = function(){
+    window.removeEventListener('pointerdown', fire); window.removeEventListener('keydown', fire); window.removeEventListener('touchstart', fire);
+    S.gestureBound = false;
+    if (!S.wanted || !S.ctx) return;
+    var p = S.ctx.resume();
+    var done = function(){ if (S.ctx.state === 'running'){ S.state = 'on'; paintSound(); } };
+    if (p && p.then) p.then(done, done); else done();
+  };
+  window.addEventListener('pointerdown', fire, {passive:true});
+  window.addEventListener('touchstart', fire, {passive:true});
+  window.addEventListener('keydown', fire);
+  var r = S.ctx.resume(); if (r && r.then) r.then(function(){ if (S.ctx.state === 'running'){ S.state='on'; paintSound(); } }, function(){});
+}
+function paintSound(){
+  var btn = document.getElementById('soundBtn'), lbl = document.getElementById('soundLabel');
+  btn.dataset.state = !S.wanted ? 'off' : (S.state === 'on' ? 'on' : 'ready');
+  btn.setAttribute('aria-pressed', S.wanted ? 'true' : 'false');
+  lbl.textContent = S.wanted ? 'Sound on' : 'Sound off';
+}
+function tickSound(){ tone({freq:1244.51, dur:0.09, gain:0.007, type:'triangle', attack:0.004, release:0.04}); }
+function signature(){
+  var ctx = S.ctx; if (!ctx || !S.wanted || ctx.state !== 'running') return;
+  var b = bus(), t0 = ctx.currentTime + 0.02;
+  tone({at:t0,          freq:523.25, dur:1.3,  gain:0.020, attack:0.014, release:0.8});
+  tone({at:t0,          freq:1046.5, dur:0.95, gain:0.006, attack:0.014, release:0.55});
+  tone({at:t0 + 0.13,   freq:783.99, dur:1.35, gain:0.018, attack:0.014, release:0.85});
+  tone({at:t0 + 0.13,   freq:1567.98,dur:0.95, gain:0.005, attack:0.014, release:0.55});
+  tone({at:t0 + 0.05,   freq:392.00, to:1174.66, dur:0.7, gain:0.006, attack:0.18, release:0.3, filterFrom:600, filterTo:3000});
+  var from = t0 + 1.9, to = t0 + 3.1;
+  b.gain.setValueAtTime(1, from); b.gain.linearRampToValueAtTime(0.0001, to);
+}
+
+/* ============================== countdown ================================ */
+var el = { d:document.getElementById('numDays'), h:document.getElementById('numHours'),
+           m:document.getElementById('numMins'), s:document.getElementById('numSecs'),
+           bar:document.getElementById('bar'), when:document.getElementById('whenLine'),
+           live:document.getElementById('liveStatus') };
+var pad = function(n){ return (n < 10 ? '0' : '') + n; };
+var DAY_MS = 86400000;   /* the progress rule fills across the final 24 hours */
+var lastLive = '';
+
+function whenText(){
+  var day = launch.toLocaleDateString(undefined, {weekday:'long', day:'numeric', month:'long', year:'numeric'});
+  var time = launch.toLocaleTimeString(undefined, {hour:'numeric', minute:'2-digit'});
+  return day + ' · ' + time + ' (your local time)';
+}
+el.when.textContent = whenText();
+
+function paint(){
+  var left = launch.getTime() - Date.now();
+  if (left < 0) left = 0;
+  var total = Math.floor(left / 1000);
+  var d = Math.floor(total / 86400), h = Math.floor(total % 86400 / 3600),
+      m = Math.floor(total % 3600 / 60), s = total % 60;
+  el.d.textContent = d > 99 ? String(d) : pad(d);
+  el.h.textContent = pad(h); el.m.textContent = pad(m); el.s.textContent = pad(s);
+  var p = Math.min(100, Math.max(0, (DAY_MS - left) / DAY_MS * 100));
+  el.bar.style.setProperty('--p', p.toFixed(2) + '%');
+  var say = d > 0 ? d + (d === 1 ? ' day, ' : ' days, ') : '';
+  say += h + (h === 1 ? ' hour, ' : ' hours, ') + m + (m === 1 ? ' minute' : ' minutes') + ' to go';
+  if (say !== lastLive){ lastLive = say; el.live.textContent = say; }
+  if (S.wanted && total <= CFG.tickFrom && total > 0 && total !== S.ticked){ S.ticked = total; tickSound(); }
+  if (left <= 0) openGate();
+}
+
+/* ============================== celebration ============================== */
+var burst = document.getElementById('burst'), opened = false, timers = [];
+function after(ms, fn){ timers.push(setTimeout(fn, ms)); }
+function buildBurst(){
+  if (burst.childElementCount) return;
+  var rings = [
+    {n:12, r:'clamp(70px,17vmin,190px)',  sz:'7px', d:.02},
+    {n:12, r:'clamp(120px,28vmin,320px)', sz:'6px', d:.10},
+    {n:12, r:'clamp(170px,40vmin,460px)', sz:'5px', d:.19}
+  ];
+  for (var R=0;R<rings.length;R++){
+    for (var i=0;i<rings[R].n;i++){
+      var b = document.createElement('i');
+      var ang = (360 / rings[R].n) * i + (R * 13) + (i % 3) * 4;
+      var dur = (1.25 + (i % 4) * 0.16).toFixed(2) + 's';
+      var del = (rings[R].d + (i % 5) * 0.035).toFixed(3) + 's';
+      b.setAttribute('style', '--a:' + ang + 'deg;--r:' + rings[R].r + ';--sz:' + rings[R].sz + ';--dur:' + dur + ';--d:' + del);
+      burst.appendChild(b);
+    }
+  }
+}
+
+function openGate(opt){
+  opt = opt || {};
+  if (opened) return;
+  opened = true;
+  if (!opt.quiet) buildBurst();
+  gate.classList.add('is-open');
+  if (opt.quiet) gate.classList.add('quiet');
+  if (!opt.preview && !opt.quiet){ try{ store(KEY_SEEN, '1'); }catch(e){} }
+  if (!opt.quiet) signature();
+  window.dispatchEvent(new CustomEvent('swon:gate-open', { detail:{ launch: launchIso, next: nextUrl, preview: !!opt.preview, quiet: !!opt.quiet } }));
+  if (opt.preview || opt.quiet || !autoGo) return;
+  after(CFG.celebrateEnd * 1000, function(){
+    gate.classList.add('gone');
+    after(520, function(){ location.assign(nextUrl); });
+  });
+}
+
+/* ================================= API ================================== */
+window.SWONGate = {
+  version:'1.0',
+  open: function(){ openGate(); },
+  preview: function(){ restart(); openGate({preview:true}); },
+  reset: function(){ try{ localStorage.removeItem(KEY_SEEN); }catch(e){} },
+  setLaunch: function(iso){ var d = parseLaunch(iso); if (!d) return false; launch = d; launchIso = d.toISOString(); el.when.textContent = whenText(); return true; },
+  celebrate: function(){ openGate(); },
+  debug: function(){
+    return { launch: launchIso, next: nextUrl, auto: autoGo, opened: opened, seen: read(KEY_SEEN) === '1',
+             remaining: Math.max(0, launch.getTime() - Date.now()), sound: S.state, wanted: S.wanted,
+             liveVoices: S.live.length, logoIndex: logoIdx, logoLoaded: logoOk };
+  }
+};
+
+/* ================================ boot ================================== */
+document.documentElement.classList.add('gate-lock');
+if (!nextUrl) document.querySelector('.enter').hidden = true;   /* nothing to enter yet */
+paintSound();
+var enterBtn = document.getElementById('enterBtn');
+enterBtn.addEventListener('click', function(){
+  if (nextUrl){ gate.classList.add('gone'); after(420, function(){ location.assign(nextUrl); }); }
+  else { gate.classList.add('gone'); after(450, function(){ gate.classList.remove('gone'); }); }
+});
+document.getElementById('soundBtn').addEventListener('click', function(){
+  if (S.wanted){ S.wanted = false; stopSound(); S.state = 'off'; }
+  else { S.wanted = true; unlockSound(); }
+  paintSound();
+});
+
+function restart(){
+  opened = false;
+  gate.classList.remove('is-open','gone','quiet');
+  burst.innerHTML = '';
+  S.ticked = 0;
+}
+
+if (params.get('dev') === '1'){
+  var dev = document.getElementById('devbar'); dev.hidden = false;
+  document.getElementById('previewBtn').addEventListener('click', function(){ restart(); openGate({preview:true}); });
+  document.getElementById('resetBtn').addEventListener('click', function(){ window.SWONGate.reset(); restart(); });
+}
+
+var isPreview = params.get('preview') === '1';
+var isInstant = params.get('instant') === '1';
+var alreadyOpen = Date.now() >= launch.getTime();
+var alreadySeen = read(KEY_SEEN) === '1';
+
+if (isInstant){
+  if (nextUrl){ gate.classList.add('gone'); after(280, function(){ location.assign(nextUrl); }); }
+  else openGate({ preview:true, quiet:true });
+} else if (isPreview){
+  openGate({ preview:true });
+} else if (alreadyOpen){
+  /* first visit after the doors opened → celebrate once; later visits arrive quietly */
+  if (alreadySeen && autoGo){ location.replace(nextUrl); }
+  else openGate({ preview: alreadySeen, quiet: alreadySeen });
+} else {
+  paint();
+  setInterval(function(){ if (!opened) paint(); }, 250);
+}
+unlockSound();
+})();
+</script>
+</body>
+</html>

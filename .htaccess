@@ -1,0 +1,23 @@
+# Safety net for shared hosting that cannot point the document root at /public.
+# With a proper virtual host (recommended) this file is simply ignored.
+Options -Indexes
+DirectoryIndex public/index.html public/index.php
+
+<IfModule mod_rewrite.c>
+    RewriteEngine On
+
+    # Never expose dotfiles, app code, database files or storage.
+    RewriteRule ^(app|database|storage|bin)/ - [F,L]
+    RewriteRule (^|/)\. - [F,L]
+
+    # Never expose docs, SQL, logs, backup files or archives from the project root.
+    RewriteRule \.(md|sql|log|zip|bak)$ - [F,L]
+    RewriteRule \.backup\.html$ - [F,L]
+
+    # Opening page at the site root.
+    RewriteRule ^$ public/index.html [L]
+
+    # Forward everything else into the public front controller.
+    RewriteCond %{REQUEST_URI} !^/public/
+    RewriteRule ^(.*)$ public/$1 [L]
+</IfModule>

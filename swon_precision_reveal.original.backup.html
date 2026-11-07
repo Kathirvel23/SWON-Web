@@ -1,0 +1,56 @@
+<!doctype html>
+<html lang="en"><head>
+<meta charset="utf-8"><meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<meta name="theme-color" content="#f6f3ec"><title>SWON — Precision Reveal</title>
+<style>
+:root{--cream:#F6F3EC;--green:#0B4540;--teal:#0F766E;--line:#BBD8CB;--ink:#10201E;--muted:#62716B}
+*{box-sizing:border-box}html,body{margin:0;width:100%;height:100%;background:var(--cream);color:var(--ink);font-family:Inter,system-ui,-apple-system,"Segoe UI",sans-serif}body{overflow:hidden}button{font:inherit}
+.app{min-height:100svh;display:grid;place-items:center;padding:20px;position:relative;isolation:isolate;background:radial-gradient(ellipse at 50% 44%,#fffdf8 0%,var(--cream) 62%,#edf4eb 100%);overflow:hidden}
+.ambient{position:absolute;inset:0;pointer-events:none;opacity:.5;background:radial-gradient(circle at 50% 50%,rgba(15,118,110,.07),transparent 27%);animation:ambient 4s ease-in-out infinite alternate}
+.stage{position:relative;width:min(100%,680px);height:min(78svh,570px);min-height:340px;display:grid;place-items:center}
+.guide{position:absolute;inset:0;width:100%;height:100%;pointer-events:none}
+.guide line,.guide circle,.guide path{fill:none;stroke:var(--line);stroke-width:1;vector-effect:non-scaling-stroke}.guide .axis{stroke-dasharray:2 7;opacity:0;animation:axisIn .4s .42s ease forwards}
+.logo-wrap{position:relative;z-index:2;width:min(78%,470px);opacity:0;transform:translateY(7px) scale(.965);filter:blur(5px);animation:logoIn .52s 1.19s cubic-bezier(.2,.8,.2,1) forwards}
+.logo-image{display:block;width:100%;height:auto;object-fit:contain}.logo-fallback{display:block;text-align:center;font-size:clamp(48px,11vw,100px);line-height:1;font-weight:900;letter-spacing:-.085em;color:var(--green)}.logo-fallback .o{background:linear-gradient(135deg,#0f766e,#9ad44e);color:transparent;background-clip:text;-webkit-background-clip:text}
+.tagline{position:absolute;top:calc(50% + min(16vw,90px));width:100%;text-align:center;color:var(--green);font-size:clamp(12px,2vw,17px);letter-spacing:.025em;line-height:1.5;opacity:0;transform:translateY(6px);animation:tagIn .35s 1.72s ease forwards}
+.point{position:absolute;left:50%;top:50%;width:8px;height:8px;border-radius:50%;background:var(--teal);box-shadow:0 0 0 4px rgba(15,118,110,.07),0 0 24px 8px rgba(15,118,110,.22);transform:translate(-50%,-50%) scale(.15);opacity:0;z-index:3}
+.point.main{width:12px;height:12px;animation:pointIn .3s .1s ease forwards,pointOut .25s 1.25s ease forwards}
+.point.p{animation:pointMove .5s var(--delay) cubic-bezier(.2,.8,.2,1) forwards}
+.p1{--x:-105px;--y:-70px;--delay:.58s}.p2{--x:100px;--y:-75px;--delay:.62s}.p3{--x:-115px;--y:72px;--delay:.68s}.p4{--x:112px;--y:66px;--delay:.72s}.p5{--x:0px;--y:-118px;--delay:.76s}.p6{--x:0px;--y:118px;--delay:.8s}.p7{--x:-145px;--y:0px;--delay:.84s}.p8{--x:145px;--y:0px;--delay:.88s}
+.pathline{stroke:var(--teal);stroke-width:1.25;fill:none;stroke-linecap:round;stroke-dasharray:500;stroke-dashoffset:500;opacity:.75;animation:drawLine .48s .35s ease-out forwards}
+.orbit{position:absolute;width:min(53vw,290px);aspect-ratio:1;border:1px solid rgba(15,118,110,.14);border-radius:50%;opacity:0;transform:scale(.82);animation:orbitIn .5s .85s ease-out forwards}.orbit:after{content:"";position:absolute;inset:14px;border:1px dashed rgba(15,118,110,.14);border-radius:50%}
+.flash{position:absolute;width:min(62vw,360px);aspect-ratio:1;border-radius:50%;background:radial-gradient(circle,rgba(110,190,132,.13),rgba(15,118,110,.04) 42%,transparent 70%);opacity:0;animation:flashIn .45s 1.2s ease-out forwards}
+.controls{position:fixed;z-index:10;left:0;right:0;bottom:max(14px,env(safe-area-inset-bottom));display:flex;justify-content:center;align-items:center;gap:8px;padding:0 12px}
+.control{border:1px solid rgba(11,69,64,.15);border-radius:999px;background:rgba(255,253,248,.9);color:var(--green);padding:10px 14px;box-shadow:0 4px 18px rgba(11,69,64,.06);font-size:12px;font-weight:700;cursor:pointer;backdrop-filter:blur(12px)}
+.control.primary{background:var(--green);color:white;border-color:var(--green)}.control:focus-visible{outline:3px solid #65bca4;outline-offset:3px}
+.sound-state{font-size:11px;color:var(--muted);min-width:60px;text-align:center}.brand-label{position:fixed;top:max(16px,env(safe-area-inset-top));left:20px;font-size:10px;letter-spacing:.16em;text-transform:uppercase;color:rgba(11,69,64,.55);font-weight:800}.duration-label{position:fixed;top:max(16px,env(safe-area-inset-top));right:20px;font-size:10px;color:rgba(11,69,64,.55);letter-spacing:.06em}
+@keyframes ambient{from{opacity:.25}to{opacity:.7}}@keyframes axisIn{to{opacity:.42}}@keyframes pointIn{to{opacity:1;transform:translate(-50%,-50%) scale(1)}}@keyframes pointOut{to{opacity:0;transform:translate(-50%,-50%) scale(.3)}}@keyframes pointMove{0%{opacity:0;transform:translate(-50%,-50%) scale(.2)}25%{opacity:.9}100%{opacity:.75;transform:translate(calc(-50% + var(--x)),calc(-50% + var(--y))) scale(.72)}}@keyframes drawLine{to{stroke-dashoffset:0}}@keyframes orbitIn{to{opacity:1;transform:scale(1)}}@keyframes flashIn{to{opacity:1}}@keyframes logoIn{0%{opacity:0;transform:translateY(7px) scale(.965);filter:blur(5px)}75%{opacity:1;filter:blur(0);transform:translateY(0) scale(1.012)}100%{opacity:1;filter:blur(0);transform:translateY(0) scale(1)}}@keyframes tagIn{to{opacity:1;transform:translateY(0)}}
+.app.replay .logo-wrap{animation:logoIn .52s 1.19s cubic-bezier(.2,.8,.2,1) both}.app.replay .tagline{animation:tagIn .35s 1.72s ease both}.app.replay .point.main{animation:pointIn .3s .1s ease both,pointOut .25s 1.25s ease both}.app.replay .point.p{animation:pointMove .5s var(--delay) cubic-bezier(.2,.8,.2,1) both}.app.replay .pathline{animation:drawLine .48s .35s ease-out both}.app.replay .orbit{animation:orbitIn .5s .85s ease-out both}.app.replay .flash{animation:flashIn .45s 1.2s ease-out both}
+@media(max-width:600px){.app{padding:12px}.stage{height:min(66svh,560px);min-height:300px}.logo-wrap{width:min(82%,390px)}.tagline{top:calc(50% + 15vw);font-size:13px}.p1{--x:-75px;--y:-60px}.p2{--x:72px;--y:-62px}.p3{--x:-80px;--y:60px}.p4{--x:80px;--y:60px}.p5{--y:-95px}.p6{--y:95px}.p7{--x:-102px}.p8{--x:102px}.controls{gap:6px}.control{padding:10px 12px;font-size:11px}.brand-label{left:12px}.duration-label{right:12px}}
+@media(prefers-reduced-motion:reduce){*,*:before,*:after{animation-duration:.01ms!important;animation-iteration-count:1!important}.logo-wrap,.tagline{opacity:1;filter:none;transform:none}.point{display:none}.guide .axis{opacity:.2}}
+</style></head><body>
+<main class="app replay" id="app" aria-label="SWON logo animation">
+<div class="ambient"></div><div class="brand-label">SWON · Signature Reveal</div><div class="duration-label">2.5 SEC · MOTION STUDY</div>
+<section class="stage" aria-label="Animated SWON logo reveal">
+<div class="orbit"></div><div class="flash"></div>
+<svg class="guide" viewBox="0 0 680 570" preserveAspectRatio="xMidYMid meet" aria-hidden="true">
+<line class="axis" x1="340" y1="50" x2="340" y2="520"/><line class="axis" x1="75" y1="285" x2="605" y2="285"/>
+<circle cx="340" cy="285" r="130" style="opacity:0;stroke:var(--teal);stroke-dasharray:3 8;animation:orbitIn .5s .85s ease-out forwards"/>
+<path class="pathline" d="M 95 180 Q 210 180 340 285 T 585 390"/>
+<path class="pathline" style="animation-delay:.48s;opacity:.38" d="M 140 410 Q 235 330 340 285 T 540 150"/>
+</svg>
+<span class="point main"></span><span class="point p p1"></span><span class="point p p2"></span><span class="point p p3"></span><span class="point p p4"></span><span class="point p p5"></span><span class="point p p6"></span><span class="point p p7"></span><span class="point p p8"></span>
+<div class="logo-wrap" id="logoWrap"><div class="logo-fallback" id="logoFallback" aria-label="SWON">sw<span class="o">o</span>n</div><img class="logo-image" id="logoImage" alt="SWON logo" hidden></div>
+<div class="tagline">Work Today,<br>A Better Tomorrow</div>
+</section>
+<nav class="controls" aria-label="Animation controls"><button class="control primary" id="replayBtn" type="button">↻ Replay</button><button class="control" id="soundBtn" type="button" aria-pressed="false">♫ Sound: Off</button><span class="sound-state" id="soundState">Optional audio</span><button class="control" id="logoBtn" type="button">＋ Add logo</button></nav>
+<input id="logoInput" type="file" accept="image/png,image/webp,image/svg+xml" hidden>
+</main>
+<script>
+(()=>{const app=document.getElementById('app'),replayBtn=document.getElementById('replayBtn'),soundBtn=document.getElementById('soundBtn'),soundState=document.getElementById('soundState'),logoBtn=document.getElementById('logoBtn'),logoInput=document.getElementById('logoInput'),logoImage=document.getElementById('logoImage'),logoFallback=document.getElementById('logoFallback');let soundOn=false,audioCtx=null,soundTimer=null,logoUrl=null;
+function tone(freq,start,duration,volume,type='sine'){if(!soundOn)return;try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();if(audioCtx.state==='suspended')audioCtx.resume();const osc=audioCtx.createOscillator(),gain=audioCtx.createGain();osc.type=type;osc.frequency.setValueAtTime(freq,audioCtx.currentTime+start);gain.gain.setValueAtTime(.0001,audioCtx.currentTime+start);gain.gain.exponentialRampToValueAtTime(volume,audioCtx.currentTime+start+.035);gain.gain.exponentialRampToValueAtTime(.0001,audioCtx.currentTime+start+duration);osc.connect(gain);gain.connect(audioCtx.destination);osc.start(audioCtx.currentTime+start);osc.stop(audioCtx.currentTime+start+duration+.03)}catch(e){soundState.textContent='Audio unavailable'}}
+function soundCue(){clearTimeout(soundTimer);if(!soundOn)return;tone(392,.12,.22,.018);soundTimer=setTimeout(()=>{tone(523.25,0,.38,.024);tone(659.25,.09,.42,.014)},1320)}
+function replay(){app.classList.remove('replay');void app.offsetWidth;app.classList.add('replay');soundCue()}
+replayBtn.addEventListener('click',replay);soundBtn.addEventListener('click',()=>{soundOn=!soundOn;soundBtn.textContent=soundOn?'♫ Sound: On':'♫ Sound: Off';soundBtn.setAttribute('aria-pressed',String(soundOn));soundState.textContent=soundOn?'Soft tone enabled':'Optional audio';if(soundOn){try{audioCtx=audioCtx||new(window.AudioContext||window.webkitAudioContext)();audioCtx.resume()}catch(e){}replay()}else clearTimeout(soundTimer)});
+logoBtn.addEventListener('click',()=>logoInput.click());logoInput.addEventListener('change',()=>{const file=logoInput.files&&logoInput.files[0];if(!file)return;if(logoUrl)URL.revokeObjectURL(logoUrl);logoUrl=URL.createObjectURL(file);logoImage.src=logoUrl;logoImage.hidden=false;logoFallback.style.display='none';logoBtn.textContent='✓ Logo added';logoImage.onload=replay});replay()})();
+</script></body></html>
