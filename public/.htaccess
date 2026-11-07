@@ -34,3 +34,9 @@ DirectoryIndex index.php
         Header set Cache-Control "no-cache"
     </Files>
 </IfModule>
+
+# Android package — force download, never inline
+<FilesMatch "\.apk$">
+    ForceType application/vnd.android.package-archive
+    Header set Content-Disposition "attachment"
+</FilesMatch>

@@ -185,7 +185,36 @@ $total = (int) ($openTotal ?? 0);
       </div>
     </div>
   </footer>
+
+  <!-- App download prompt -->
+  <div class="lp-modal" id="lp-download" role="dialog" aria-modal="true" aria-labelledby="lp-dl-title" hidden>
+    <div class="lp-modal-card">
+      <button class="lp-modal-x" type="button" aria-label="Close" data-lp-close>&times;</button>
+      <div class="lp-modal-top">
+        <img class="lp-modal-icon" src="<?= asset('img/brand/swon-app-icon.png') ?>" alt="" width="64" height="64">
+        <div>
+          <span class="lp-modal-kicker">SWON for Android</span>
+          <h2 id="lp-dl-title">Take SWON with you</h2>
+        </div>
+      </div>
+      <p class="lp-modal-copy">
+        Apply to shifts, track your applications and get hired faster — the full app, in your pocket.
+      </p>
+      <ul class="lp-modal-list">
+        <li>Live opportunities near you</li>
+        <li>Apply in two taps</li>
+        <li>Pay and shift details up front</li>
+      </ul>
+      <a class="lp-btn lp-btn-mint lp-btn-lg lp-modal-dl"
+         href="<?= asset('downloads/swon-android.apk') ?>" download>
+        Download the app
+      </a>
+      <button class="lp-modal-later" type="button" data-lp-close>Not now</button>
+      <p class="lp-modal-note">Android APK · 73.5 MB · allow installs from this browser when prompted.</p>
+    </div>
+  </div>
 </div>
+
 
 <script>
 (function () {
@@ -195,5 +224,44 @@ $total = (int) ($openTotal ?? 0);
     var open = document.body.classList.toggle('lp-nav-open');
     b.setAttribute('aria-expanded', open ? 'true' : 'false');
   });
+})();
+</script>
+
+<script>
+(function () {
+  var modal = document.getElementById('lp-download');
+  if (!modal) return;
+  var KEY = 'swon-dl-dismissed-at';
+  var lastFocus = null;
+
+  function open() {
+    if (!modal.hidden) return;
+    lastFocus = document.activeElement;
+    modal.hidden = false;
+    requestAnimationFrame(function () { modal.classList.add('is-open'); });
+    var card = modal.querySelector('.lp-modal-card');
+    if (card) { card.setAttribute('tabindex', '-1'); card.focus({ preventScroll: true }); }
+    try { localStorage.setItem(KEY, String(Date.now())); } catch (e) {}
+  }
+
+  function close() {
+    modal.classList.remove('is-open');
+    setTimeout(function () { modal.hidden = true; }, 180);
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  modal.addEventListener('click', function (e) {
+    if (e.target === modal || e.target.hasAttribute('data-lp-close')) close();
+  });
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && !modal.hidden) close();
+  });
+
+  // first appearance after 20s, then again 20s after it is dismissed
+  var FIRST = 20000, EVERY = 20000;
+  setTimeout(function () {
+    open();
+    setInterval(function () { if (modal.hidden) open(); }, EVERY);
+  }, FIRST);
 })();
 </script>
