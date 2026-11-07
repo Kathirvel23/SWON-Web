@@ -781,17 +781,16 @@ code, .mono { font-family: var(--font-mono); }
 }
 
 /* ---------------------------------------------------------------- splash */
-.splash-body { margin: 0; min-height: 100vh; color: #fff; background: #0A162D; }
+.splash-body { margin: 0; min-height: 100vh; color: var(--ink); background: var(--canvas); }
 /* Layered depth instead of a flat navy field: two soft colour pools, a hairline
    grid that fades out, the brand wing motif, dot texture, film grain and a vignette.
    Nothing here is a flat fill, and nothing glows. */
 .splash-bg {
   position: fixed; inset: 0; z-index: -1;
   background:
-    radial-gradient(65% 50% at 80% 34%, rgba(20, 184, 166, 0.20) 0%, rgba(20, 184, 166, 0) 62%),
-    radial-gradient(55% 45% at 8% 88%, rgba(30, 58, 138, 0.40) 0%, rgba(30, 58, 138, 0) 62%),
-    radial-gradient(80% 55% at 50% -8%, rgba(255, 255, 255, 0.10) 0%, rgba(255, 255, 255, 0) 58%),
-    linear-gradient(165deg, #14284B 0%, #0F1E3D 38%, #0A162D 76%, #060D1C 100%);
+    radial-gradient(60% 45% at 82% 12%, rgba(20, 184, 166, 0.10) 0%, rgba(20, 184, 166, 0) 60%),
+    radial-gradient(55% 45% at 6% 92%, rgba(15, 30, 61, 0.06) 0%, rgba(15, 30, 61, 0) 62%),
+    linear-gradient(180deg, #FFFFFF 0%, var(--canvas) 60%, #EDF1F6 100%);
 }
 
 /* grid + wing motif, both faded at the edges so they read as texture, not pattern */
@@ -847,7 +846,7 @@ code, .mono { font-family: var(--font-mono); }
 .splash-feature .role-icon { background: rgba(255, 255, 255, 0.16); border: 1px solid rgba(255, 255, 255, 0.28); }
 .splash-feature h2, .splash-feature h3 { color: #fff; font-size: 1.04rem; margin-bottom: 5px; }
 .splash-feature p { color: rgba(255, 255, 255, 0.88); font-size: 0.9rem; margin: 0; font-weight: 500; }
-.splash-footer { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; color: rgba(255, 255, 255, 0.6); font-size: 0.78rem; position: relative; z-index: 1; }
+.splash-footer { display: flex; flex-wrap: wrap; gap: 10px 24px; justify-content: space-between; color: var(--muted); font-size: 0.78rem; position: relative; z-index: 1; }
 .splash-footer a { color: rgba(255, 255, 255, 0.85); font-weight: 700; }
 /* CTAs on the dark brand surface must not be teal-on-teal */
 .splash-top .btn-sw, .splash-main .btn-sw { background: #fff; color: var(--primary-deep); box-shadow: 0 10px 22px -12px rgba(0, 0, 0, 0.5); }
