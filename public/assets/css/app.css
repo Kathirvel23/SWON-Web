@@ -11,6 +11,8 @@
   --primary: #0F1E3D;
   --primary-dark: #0A162D;
   --primary-deep: #0A162D;
+  /* the one step above primary — gradients, links, OPEN states (matches the app) */
+  --secondary: #1E3A8A;
   --primary-light: #E8FBF5;
   --tint: #F1FBF8;
   --tint-2: #E8FBF5;
