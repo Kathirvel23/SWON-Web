@@ -257,11 +257,15 @@ $total = (int) ($openTotal ?? 0);
     if (e.key === 'Escape' && !modal.hidden) close();
   });
 
-  // first appearance after 20s, then again 20s after it is dismissed
-  var FIRST = 20000, EVERY = 20000;
-  setTimeout(function () {
-    open();
-    setInterval(function () { if (modal.hidden) open(); }, EVERY);
-  }, FIRST);
+  // opens as soon as the page is up, then again 20s after each dismissal
+  var FIRST = 700, EVERY = 20000;
+  function start() {
+    setTimeout(function () {
+      open();
+      setInterval(function () { if (modal.hidden) open(); }, EVERY);
+    }, FIRST);
+  }
+  if (document.readyState === 'complete') start();
+  else window.addEventListener('load', start, { once: true });
 })();
 </script>
