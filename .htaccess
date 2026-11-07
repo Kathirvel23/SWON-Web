@@ -1,7 +1,7 @@
 # Safety net for shared hosting that cannot point the document root at /public.
 # With a proper virtual host (recommended) this file is simply ignored.
 Options -Indexes
-DirectoryIndex public/index.html public/index.php
+DirectoryIndex public/index.php
 
 <IfModule mod_rewrite.c>
     RewriteEngine On
@@ -15,7 +15,7 @@ DirectoryIndex public/index.html public/index.php
     RewriteRule \.backup\.html$ - [F,L]
 
     # Opening page at the site root.
-    RewriteRule ^$ public/index.html [L]
+    RewriteRule ^$ public/index.php [L]
 
     # Forward everything else into the public front controller.
     RewriteCond %{REQUEST_URI} !^/public/

@@ -9,13 +9,8 @@ declare(strict_types=1);
 $path = parse_url($_SERVER['REQUEST_URI'] ?? '/', PHP_URL_PATH) ?: '/';
 $file = __DIR__ . $path;
 
-// Serve the static grand-opening page at the site root under `php -S`
-// (the built-in server does not apply Apache's DirectoryIndex here).
-if ($path === '/' && is_file(__DIR__ . '/index.html')) {
-    header('Content-Type: text/html; charset=UTF-8');
-    readfile(__DIR__ . '/index.html');
-    return true;
-}
+// '/' is the application itself. The launch gate lives at /grand-opening.html
+// and is no longer allowed to shadow the site root.
 
 // The PHP built-in server does not know the .webmanifest MIME type.
 if ($path === '/manifest.webmanifest' && is_file($file)) {

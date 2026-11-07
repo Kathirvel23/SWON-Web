@@ -25,7 +25,11 @@ final class DashboardController
             redirect(Auth::homeFor(Auth::role()));
         }
 
-        View::render('pages/splash', ['title' => 'SWON — Find work. Build your crew.'], 'layouts/splash');
+        View::render('pages/splash', [
+            'title'     => 'SWON — Find work. Build your crew.',
+            'featured'  => $this->jobs->latestOpen(3),
+            'openTotal' => $this->jobs->countOpen([]),
+        ], 'layouts/splash');
     }
 
     public function index(array $params = []): void
