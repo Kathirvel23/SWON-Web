@@ -1387,3 +1387,19 @@ code, .mono { font-family: var(--font-mono); }
 /* photo tucks behind the phones rather than being covered by floating cards */
 .lp .lp-photo { right: 2%; width: 74%; }
 .lp .lp-blob-a { right: 0; }
+
+/* ---------- Soft-UI parity with the app ----------
+   App spec (TIER1-SOFTUI): shadowColor #0F1E3D, opacity .09, radius 10, offset {3,4},
+   elevation 3. The landing page was using 30-60px shadows, which is why it read as a
+   different product. These rules bring it back to the app's softness. */
+.lp .lp-photo {
+  box-shadow: 3px 4px 10px rgba(15, 30, 61, 0.09), 0 14px 30px -22px rgba(15, 30, 61, 0.16);
+}
+.lp .lp-phone { box-shadow: 3px 4px 10px rgba(15, 30, 61, 0.09); }
+.lp .lp-steps li { box-shadow: 3px 4px 10px rgba(15, 30, 61, 0.09); }
+.lp .lp-banner { box-shadow: 3px 4px 10px rgba(15, 30, 61, 0.09); }
+.lp .lp-benefits { box-shadow: none; }
+
+/* mint wells use accentTint (the app's soft mint block), not a saturated fill */
+.lp .lp-ico { background: var(--primary-light); color: var(--accent-ink); }
+.lp .lp-step-num { background: var(--primary-light); }
