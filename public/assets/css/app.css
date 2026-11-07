@@ -1152,3 +1152,6 @@ code, .mono { font-family: var(--font-mono); }
   body { background: #fff; }
   .hero { background: #0A162D !important; }
 }
+
+/* empty landing base — reserves the page height while sections are added */
+.splash-main-empty { display: block; min-height: 60vh; }
