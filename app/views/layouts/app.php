@@ -30,7 +30,7 @@ $path = current_path();
     <meta name="swon-base" content="<?= e(BASE_URL) ?>">
     <meta property="og:title" content="<?= e($title ?? 'SWON') ?> · SWON">
     <meta property="og:image" content="<?= asset('img/brand/icon-512.png') ?>">
-    <meta name="theme-color" content="#0F766E">
+    <meta name="theme-color" content="#0F1E3D">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">

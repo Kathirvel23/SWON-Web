@@ -342,7 +342,7 @@ code, .mono { font-family: var(--font-mono); }
   position: relative; overflow: hidden;
   border-radius: var(--radius-xl); padding: 32px;
   color: var(--on-brand); background: var(--g-home);
-  box-shadow: 0 20px 44px -30px rgba(11, 69, 64, 0.85);
+  box-shadow: 0 20px 44px -30px rgba(15, 30, 61, 0.55);
 }
 .hero::before { content: ""; position: absolute; inset: 0; background: var(--mapdots); opacity: 0.6; pointer-events: none; }
 .hero::after {
@@ -382,7 +382,7 @@ code, .mono { font-family: var(--font-mono); }
   display: flex; align-items: center; gap: 10px;
   margin: -32px 22px 20px; position: relative; z-index: 2;
   background: var(--card); border: 1px solid var(--line); border-radius: 999px; padding: 13px 18px;
-  box-shadow: 0 14px 30px -16px rgba(16, 32, 30, 0.45);
+  box-shadow: 0 14px 30px -16px rgba(15, 30, 61, 0.32);
 }
 .searchbar input {
   flex: 1; border: 0; outline: 0; min-width: 0; background: transparent;
@@ -712,7 +712,7 @@ code, .mono { font-family: var(--font-mono); }
 }
 .auth-brand::before {
   content: ""; position: absolute; inset: 0;
-  background: linear-gradient(160deg, rgba(15, 118, 110, 0.9) 0%, rgba(11, 69, 64, 0.93) 55%, rgba(16, 32, 30, 0.95) 100%);
+  background: linear-gradient(160deg, rgba(15, 30, 61, 0.92) 0%, rgba(10, 22, 45, 0.94) 55%, rgba(6, 13, 28, 0.96) 100%);
 }
 .auth-brand::after {
   content: ""; position: absolute; right: -40px; top: -30px; width: 420px; height: 300px;

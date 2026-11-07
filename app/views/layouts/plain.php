@@ -19,7 +19,7 @@
     <meta name="apple-mobile-web-app-title" content="SWON">
     <meta name="swon-pwa" content="<?= \App\Env::bool('PWA_ENABLED', true) ? '1' : '0' ?>">
     <meta name="swon-base" content="<?= e(BASE_URL) ?>">
-    <meta name="theme-color" content="#0F766E">
+    <meta name="theme-color" content="#0F1E3D">
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
     <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
